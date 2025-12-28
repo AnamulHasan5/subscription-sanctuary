@@ -19,6 +19,19 @@ import {
 
 const COLLECTION_NAME = 'subscriptions';
 
+// Check if a document has all required fields
+const isValidSubscription = (docData: any): boolean => {
+  return (
+    typeof docData.name === 'string' &&
+    docData.name.trim() !== '' &&
+    typeof docData.category === 'string' &&
+    typeof docData.cost === 'number' &&
+    typeof docData.billingCycle === 'string' &&
+    docData.nextRenewal != null &&
+    typeof docData.status === 'string'
+  );
+};
+
 // Convert Firestore doc to Subscription
 const docToSubscription = (docData: any, id: string): Subscription => ({
   ...docData,
@@ -45,7 +58,9 @@ export function useSubscriptions() {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const subs = snapshot.docs.map((doc) => docToSubscription(doc.data(), doc.id));
+        const subs = snapshot.docs
+          .filter((doc) => isValidSubscription(doc.data()))
+          .map((doc) => docToSubscription(doc.data(), doc.id));
         setSubscriptions(subs);
         setIsLoading(false);
       },
