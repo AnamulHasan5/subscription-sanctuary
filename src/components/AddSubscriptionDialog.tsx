@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { format } from 'date-fns';
+import { Sparkles } from 'lucide-react';
 
 interface AddSubscriptionDialogProps {
   open: boolean;
@@ -100,35 +101,44 @@ export function AddSubscriptionDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-xl">
-            {isEditing ? 'Edit Subscription' : 'Add New Subscription'}
-          </DialogTitle>
+      <DialogContent className="sm:max-w-lg rounded-2xl p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-2">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-primary" />
+            </div>
+            <DialogTitle className="text-xl font-bold">
+              {isEditing ? 'Edit Subscription' : 'New Subscription'}
+            </DialogTitle>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {isEditing ? 'Update your subscription details' : 'Add a new subscription to track'}
+          </p>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+        <form onSubmit={handleSubmit} className="p-6 pt-4 space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="name">Service Name</Label>
+            <Label htmlFor="name" className="text-sm font-semibold">Service Name</Label>
             <Input
               id="name"
               placeholder="Netflix, ChatGPT, etc."
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              className="h-11 rounded-xl"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category" className="text-sm font-semibold">Category</Label>
               <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11 rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl">
                   {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
+                    <SelectItem key={cat} value={cat} className="rounded-lg">
                       {categoryLabels[cat]}
                     </SelectItem>
                   ))}
@@ -137,14 +147,14 @@ export function AddSubscriptionDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cycle">Billing Cycle</Label>
+              <Label htmlFor="cycle" className="text-sm font-semibold">Billing Cycle</Label>
               <Select value={billingCycle} onValueChange={(v) => setBillingCycle(v as BillingCycle)}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11 rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl">
                   {billingCycles.map((cycle) => (
-                    <SelectItem key={cycle} value={cycle}>
+                    <SelectItem key={cycle} value={cycle} className="rounded-lg">
                       {billingCycleLabels[cycle]}
                     </SelectItem>
                   ))}
@@ -155,7 +165,7 @@ export function AddSubscriptionDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="cost">Cost ($)</Label>
+              <Label htmlFor="cost" className="text-sm font-semibold">Cost ($)</Label>
               <Input
                 id="cost"
                 type="number"
@@ -165,47 +175,55 @@ export function AddSubscriptionDialog({
                 value={cost}
                 onChange={(e) => setCost(e.target.value)}
                 required
+                className="h-11 rounded-xl"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="renewal">Next Renewal</Label>
+              <Label htmlFor="renewal" className="text-sm font-semibold">Next Renewal</Label>
               <Input
                 id="renewal"
                 type="date"
                 value={nextRenewal}
                 onChange={(e) => setNextRenewal(e.target.value)}
                 required
+                className="h-11 rounded-xl"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="payment">Payment Method (optional)</Label>
+            <Label htmlFor="payment" className="text-sm font-semibold">
+              Payment Method <span className="text-muted-foreground font-normal">(optional)</span>
+            </Label>
             <Input
               id="payment"
               placeholder="Visa ending in 4242"
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
+              className="h-11 rounded-xl"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes (optional)</Label>
+            <Label htmlFor="notes" className="text-sm font-semibold">
+              Notes <span className="text-muted-foreground font-normal">(optional)</span>
+            </Label>
             <Textarea
               id="notes"
               placeholder="Any additional notes..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
+              className="rounded-xl resize-none"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="rounded-xl px-5">
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="btn-gradient rounded-xl px-6">
               {isEditing ? 'Save Changes' : 'Add Subscription'}
             </Button>
           </div>

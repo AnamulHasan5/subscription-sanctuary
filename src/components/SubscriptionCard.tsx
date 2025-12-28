@@ -1,7 +1,7 @@
 import { Subscription, categoryLabels, billingCycleLabels } from '@/types/subscription';
 import { formatCurrency, getDaysUntilRenewal } from '@/lib/subscriptions';
 import { format } from 'date-fns';
-import { Calendar, MoreVertical, Trash2, Edit, XCircle } from 'lucide-react';
+import { Calendar, MoreVertical, Trash2, Edit, XCircle, Clock } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,11 +28,11 @@ export function SubscriptionCard({
   const isUpcoming = daysUntil <= 7 && daysUntil > 3;
 
   return (
-    <div className="subscription-card animate-scale-in group">
-      <div className="flex items-start justify-between gap-3">
+    <div className="subscription-card group">
+      <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-foreground truncate">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h3 className="font-semibold text-foreground text-base tracking-tight">
               {subscription.name}
             </h3>
             <span className={`category-badge category-${subscription.category}`}>
@@ -45,34 +45,37 @@ export function SubscriptionCard({
             )}
           </div>
           
-          <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">
+          <div className="mt-3 flex items-baseline gap-1">
+            <span className="text-2xl font-bold text-foreground tracking-tight">
               {formatCurrency(subscription.cost)}
-              <span className="text-muted-foreground font-normal">
-                /{billingCycleLabels[subscription.billingCycle].toLowerCase()}
-              </span>
+            </span>
+            <span className="text-sm text-muted-foreground">
+              /{billingCycleLabels[subscription.billingCycle].toLowerCase()}
             </span>
           </div>
 
           {subscription.status === 'active' && (
-            <div className="mt-3 flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span className={`text-sm ${
-                isUrgent ? 'text-destructive font-medium' : 
-                isUpcoming ? 'text-warning font-medium' : 
-                'text-muted-foreground'
-              }`}>
-                {daysUntil === 0 
-                  ? 'Renews today'
-                  : daysUntil === 1 
-                  ? 'Renews tomorrow'
-                  : daysUntil < 0
-                  ? 'Past due'
-                  : `Renews in ${daysUntil} days`
-                }
-              </span>
-              <span className="text-muted-foreground text-sm">
-                · {format(new Date(subscription.nextRenewal), 'MMM d, yyyy')}
+            <div className="mt-4 flex items-center gap-2 text-sm">
+              <div className={`
+                flex items-center gap-1.5 px-2.5 py-1 rounded-lg
+                ${isUrgent ? 'bg-destructive/10 text-destructive' : 
+                  isUpcoming ? 'bg-warning/10 text-warning' : 
+                  'bg-muted text-muted-foreground'}
+              `}>
+                <Clock className="h-3.5 w-3.5" />
+                <span className="font-medium">
+                  {daysUntil === 0 
+                    ? 'Today'
+                    : daysUntil === 1 
+                    ? 'Tomorrow'
+                    : daysUntil < 0
+                    ? 'Past due'
+                    : `${daysUntil} days`
+                  }
+                </span>
+              </div>
+              <span className="text-muted-foreground">
+                {format(new Date(subscription.nextRenewal), 'MMM d, yyyy')}
               </span>
             </div>
           )}
@@ -83,30 +86,30 @@ export function SubscriptionCard({
             <Button 
               variant="ghost" 
               size="icon"
-              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="h-9 w-9 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-muted"
             >
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
+          <DropdownMenuContent align="end" className="w-44 rounded-xl p-1.5">
             {onEdit && (
-              <DropdownMenuItem onClick={() => onEdit(subscription)}>
-                <Edit className="h-4 w-4 mr-2" />
+              <DropdownMenuItem onClick={() => onEdit(subscription)} className="rounded-lg cursor-pointer">
+                <Edit className="h-4 w-4 mr-2.5" />
                 Edit
               </DropdownMenuItem>
             )}
             {onCancel && subscription.status === 'active' && (
-              <DropdownMenuItem onClick={() => onCancel(subscription.id)}>
-                <XCircle className="h-4 w-4 mr-2" />
+              <DropdownMenuItem onClick={() => onCancel(subscription.id)} className="rounded-lg cursor-pointer">
+                <XCircle className="h-4 w-4 mr-2.5" />
                 Cancel
               </DropdownMenuItem>
             )}
             {onDelete && (
               <DropdownMenuItem 
                 onClick={() => onDelete(subscription.id)}
-                className="text-destructive focus:text-destructive"
+                className="rounded-lg cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
               >
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="h-4 w-4 mr-2.5" />
                 Delete
               </DropdownMenuItem>
             )}
