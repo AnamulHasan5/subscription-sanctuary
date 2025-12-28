@@ -43,11 +43,13 @@ export function useSubscriptions() {
   // Listen to Firestore changes
   useEffect(() => {
     const q = query(collection(db, COLLECTION_NAME));
+    const hasInitialized = localStorage.getItem('subscriptions_initialized');
     
     const unsubscribe = onSnapshot(q, 
       (snapshot) => {
-        if (snapshot.empty) {
-          // Initialize with sample data if collection is empty
+        if (snapshot.empty && !hasInitialized) {
+          // Initialize with sample data only on first use
+          localStorage.setItem('subscriptions_initialized', 'true');
           sampleSubscriptions.forEach(async (sub) => {
             await addDoc(collection(db, COLLECTION_NAME), subscriptionToDoc(sub));
           });
@@ -56,6 +58,7 @@ export function useSubscriptions() {
             docToSubscription(doc.data(), doc.id)
           );
           setSubscriptions(subs);
+          localStorage.setItem('subscriptions_initialized', 'true');
         }
         setIsLoading(false);
       },
