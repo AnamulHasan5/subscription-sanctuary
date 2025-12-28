@@ -1,11 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Subscription, SubscriptionStatus } from '@/types/subscription';
-import { 
-  calculateMonthlyEquivalent, 
-  calculateYearlyEquivalent, 
+import {
+  calculateMonthlyEquivalent,
+  calculateYearlyEquivalent,
   getUpcomingRenewals,
-  sampleSubscriptions,
-  generateId
 } from '@/lib/subscriptions';
 import { db } from '@/lib/firebase';
 import { 
@@ -47,23 +45,8 @@ export function useSubscriptions() {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const hasInitialized = localStorage.getItem('subscriptions_initialized') === 'true';
-
-        if (snapshot.empty && !hasInitialized) {
-          // Initialize with sample data only on first use
-          localStorage.setItem('subscriptions_initialized', 'true');
-          sampleSubscriptions.forEach(async (sub) => {
-            await addDoc(collection(db, COLLECTION_NAME), subscriptionToDoc(sub));
-          });
-        } else {
-          const subs = snapshot.docs.map((doc) => docToSubscription(doc.data(), doc.id));
-          setSubscriptions(subs);
-
-          if (!hasInitialized) {
-            localStorage.setItem('subscriptions_initialized', 'true');
-          }
-        }
-
+        const subs = snapshot.docs.map((doc) => docToSubscription(doc.data(), doc.id));
+        setSubscriptions(subs);
         setIsLoading(false);
       },
       (error) => {
@@ -73,16 +56,18 @@ export function useSubscriptions() {
         if (stored) {
           try {
             const parsed = JSON.parse(stored);
-            setSubscriptions(parsed.map((sub: Subscription) => ({
-              ...sub,
-              nextRenewal: new Date(sub.nextRenewal),
-              createdAt: new Date(sub.createdAt),
-            })));
+            setSubscriptions(
+              parsed.map((sub: Subscription) => ({
+                ...sub,
+                nextRenewal: new Date(sub.nextRenewal),
+                createdAt: new Date(sub.createdAt),
+              }))
+            );
           } catch {
-            setSubscriptions(sampleSubscriptions);
+            setSubscriptions([]);
           }
         } else {
-          setSubscriptions(sampleSubscriptions);
+          setSubscriptions([]);
         }
         setIsLoading(false);
       }
@@ -93,8 +78,12 @@ export function useSubscriptions() {
 
   // Backup to localStorage
   useEffect(() => {
-    if (!isLoading && subscriptions.length > 0) {
+    if (isLoading) return;
+
+    if (subscriptions.length > 0) {
       localStorage.setItem('subscriptions_backup', JSON.stringify(subscriptions));
+    } else {
+      localStorage.removeItem('subscriptions_backup');
     }
   }, [subscriptions, isLoading]);
 
