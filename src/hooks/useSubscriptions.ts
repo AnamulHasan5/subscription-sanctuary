@@ -7,57 +7,113 @@ import {
   sampleSubscriptions,
   generateId
 } from '@/lib/subscriptions';
+import { db } from '@/lib/firebase';
+import { 
+  collection, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  doc, 
+  onSnapshot,
+  query,
+  Timestamp
+} from 'firebase/firestore';
 
-const STORAGE_KEY = 'subscriptions';
+const COLLECTION_NAME = 'subscriptions';
+
+// Convert Firestore doc to Subscription
+const docToSubscription = (docData: any, id: string): Subscription => ({
+  ...docData,
+  id,
+  nextRenewal: docData.nextRenewal?.toDate?.() || new Date(docData.nextRenewal),
+  createdAt: docData.createdAt?.toDate?.() || new Date(docData.createdAt),
+});
+
+// Convert Subscription to Firestore format
+const subscriptionToDoc = (sub: Omit<Subscription, 'id'>) => ({
+  ...sub,
+  nextRenewal: Timestamp.fromDate(new Date(sub.nextRenewal)),
+  createdAt: Timestamp.fromDate(new Date(sub.createdAt)),
+});
 
 export function useSubscriptions() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load from localStorage on mount
+  // Listen to Firestore changes
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setSubscriptions(parsed.map((sub: Subscription) => ({
-          ...sub,
-          nextRenewal: new Date(sub.nextRenewal),
-          createdAt: new Date(sub.createdAt),
-        })));
-      } catch {
-        setSubscriptions(sampleSubscriptions);
+    const q = query(collection(db, COLLECTION_NAME));
+    
+    const unsubscribe = onSnapshot(q, 
+      (snapshot) => {
+        if (snapshot.empty) {
+          // Initialize with sample data if collection is empty
+          sampleSubscriptions.forEach(async (sub) => {
+            await addDoc(collection(db, COLLECTION_NAME), subscriptionToDoc(sub));
+          });
+        } else {
+          const subs = snapshot.docs.map(doc => 
+            docToSubscription(doc.data(), doc.id)
+          );
+          setSubscriptions(subs);
+        }
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error('Firestore error:', error);
+        // Fallback to local storage if Firestore fails
+        const stored = localStorage.getItem('subscriptions_backup');
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            setSubscriptions(parsed.map((sub: Subscription) => ({
+              ...sub,
+              nextRenewal: new Date(sub.nextRenewal),
+              createdAt: new Date(sub.createdAt),
+            })));
+          } catch {
+            setSubscriptions(sampleSubscriptions);
+          }
+        } else {
+          setSubscriptions(sampleSubscriptions);
+        }
+        setIsLoading(false);
       }
-    } else {
-      setSubscriptions(sampleSubscriptions);
-    }
-    setIsLoading(false);
+    );
+
+    return () => unsubscribe();
   }, []);
 
-  // Save to localStorage on change
+  // Backup to localStorage
   useEffect(() => {
-    if (!isLoading) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(subscriptions));
+    if (!isLoading && subscriptions.length > 0) {
+      localStorage.setItem('subscriptions_backup', JSON.stringify(subscriptions));
     }
   }, [subscriptions, isLoading]);
 
-  const addSubscription = (subscription: Omit<Subscription, 'id' | 'createdAt'>) => {
-    const newSubscription: Subscription = {
+  const addSubscription = async (subscription: Omit<Subscription, 'id' | 'createdAt'>) => {
+    const newSub = {
       ...subscription,
-      id: generateId(),
       createdAt: new Date(),
     };
-    setSubscriptions(prev => [...prev, newSubscription]);
+    await addDoc(collection(db, COLLECTION_NAME), subscriptionToDoc(newSub as Omit<Subscription, 'id'>));
   };
 
-  const updateSubscription = (id: string, updates: Partial<Subscription>) => {
-    setSubscriptions(prev => 
-      prev.map(sub => sub.id === id ? { ...sub, ...updates } : sub)
-    );
+  const updateSubscription = async (id: string, updates: Partial<Subscription>) => {
+    const docRef = doc(db, COLLECTION_NAME, id);
+    const updateData: any = { ...updates };
+    if (updates.nextRenewal) {
+      updateData.nextRenewal = Timestamp.fromDate(new Date(updates.nextRenewal));
+    }
+    if (updates.createdAt) {
+      updateData.createdAt = Timestamp.fromDate(new Date(updates.createdAt));
+    }
+    await updateDoc(docRef, updateData);
   };
 
-  const deleteSubscription = (id: string) => {
-    setSubscriptions(prev => prev.filter(sub => sub.id !== id));
+  const deleteSubscription = async (id: string) => {
+    const docRef = doc(db, COLLECTION_NAME, id);
+    await deleteDoc(docRef);
   };
 
   const updateStatus = (id: string, status: SubscriptionStatus) => {
