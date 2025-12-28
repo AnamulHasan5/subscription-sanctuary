@@ -81,61 +81,6 @@ const Index = () => {
     );
   }
 
-  // Empty state when no subscriptions exist
-  if (subscriptions.length === 0) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Toaster position="top-right" />
-        
-        {/* Header */}
-        <header className="border-b border-border/40 bg-background/60 backdrop-blur-2xl">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shadow-soft">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <h1 className="text-lg font-bold text-foreground tracking-tight">Subscript</h1>
-                  <p className="text-xs text-muted-foreground hidden sm:block">Track smarter, spend wiser</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Empty State */}
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="text-center max-w-md">
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto mb-6 shadow-glow">
-              <Sparkles className="w-10 h-10 text-primary" />
-            </div>
-            <h2 className="text-2xl font-bold text-foreground mb-3">Welcome to Subscript</h2>
-            <p className="text-muted-foreground mb-8 leading-relaxed">
-              Start tracking your subscriptions to stay on top of your spending and never miss a renewal.
-            </p>
-            <Button 
-              onClick={() => setIsAddDialogOpen(true)}
-              size="lg"
-              className="btn-gradient rounded-xl gap-2 px-8"
-            >
-              <Plus className="h-5 w-5" />
-              Add your first subscription
-            </Button>
-          </div>
-        </div>
-
-        <AddSubscriptionDialog
-          open={isAddDialogOpen}
-          onOpenChange={handleCloseDialog}
-          onAdd={handleAdd}
-          editingSubscription={editingSubscription}
-          onUpdate={handleUpdate}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen">
       <Toaster position="top-right" />
