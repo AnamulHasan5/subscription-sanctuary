@@ -62,7 +62,7 @@ const Index = () => {
   };
 
   const filteredSubscriptions = subscriptions.filter(sub =>
-    sub.name.toLowerCase().includes(searchQuery.toLowerCase())
+    sub.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const activeSubscriptions = filteredSubscriptions.filter(s => s.status === 'active');
