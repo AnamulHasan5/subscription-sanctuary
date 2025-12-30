@@ -63,15 +63,26 @@ export function AddSubscriptionDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate required fields
+    if (!name.trim()) {
+      return;
+    }
+    if (!cost || isNaN(parseFloat(cost)) || parseFloat(cost) < 0) {
+      return;
+    }
+    if (!nextRenewal) {
+      return;
+    }
+    
     const subscriptionData = {
-      name,
+      name: name.trim(),
       category,
       cost: parseFloat(cost),
       billingCycle,
       nextRenewal: new Date(nextRenewal),
       status: 'active' as const,
-      paymentMethod: paymentMethod || undefined,
-      notes: notes || undefined,
+      paymentMethod: paymentMethod.trim() || undefined,
+      notes: notes.trim() || undefined,
     };
 
     if (isEditing && editingSubscription && onUpdate) {
@@ -88,13 +99,16 @@ export function AddSubscriptionDialog({
     if (!newOpen) {
       resetForm();
     } else if (editingSubscription) {
-      setName(editingSubscription.name);
-      setCategory(editingSubscription.category);
-      setCost(editingSubscription.cost.toString());
-      setBillingCycle(editingSubscription.billingCycle);
-      setNextRenewal(format(new Date(editingSubscription.nextRenewal), 'yyyy-MM-dd'));
+      setName(editingSubscription.name || '');
+      setCategory(editingSubscription.category || 'saas');
+      setCost(editingSubscription.cost?.toString() || '');
+      setBillingCycle(editingSubscription.billingCycle || 'monthly');
+      setNextRenewal(editingSubscription.nextRenewal ? format(new Date(editingSubscription.nextRenewal), 'yyyy-MM-dd') : '');
       setPaymentMethod(editingSubscription.paymentMethod || '');
       setNotes(editingSubscription.notes || '');
+    } else {
+      // Reset form for new subscription
+      resetForm();
     }
     onOpenChange(newOpen);
   };
