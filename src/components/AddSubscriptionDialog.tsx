@@ -74,16 +74,22 @@ export function AddSubscriptionDialog({
       return;
     }
     
-    const subscriptionData = {
+    const subscriptionData: any = {
       name: name.trim(),
       category,
       cost: parseFloat(cost),
       billingCycle,
       nextRenewal: new Date(nextRenewal),
       status: 'active' as const,
-      paymentMethod: paymentMethod.trim() || undefined,
-      notes: notes.trim() || undefined,
     };
+    
+    // Only add optional fields if they have values (Firestore doesn't accept undefined)
+    if (paymentMethod.trim()) {
+      subscriptionData.paymentMethod = paymentMethod.trim();
+    }
+    if (notes.trim()) {
+      subscriptionData.notes = notes.trim();
+    }
 
     if (isEditing && editingSubscription && onUpdate) {
       onUpdate(editingSubscription.id, subscriptionData);
