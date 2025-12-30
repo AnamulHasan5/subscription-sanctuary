@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Subscription, Category, BillingCycle, categoryLabels, billingCycleLabels } from '@/types/subscription';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,15 +40,26 @@ export function AddSubscriptionDialog({
 }: AddSubscriptionDialogProps) {
   const isEditing = !!editingSubscription;
   
-  const [name, setName] = useState(editingSubscription?.name || '');
-  const [category, setCategory] = useState<Category>(editingSubscription?.category || 'saas');
-  const [cost, setCost] = useState(editingSubscription?.cost?.toString() || '');
-  const [billingCycle, setBillingCycle] = useState<BillingCycle>(editingSubscription?.billingCycle || 'monthly');
-  const [nextRenewal, setNextRenewal] = useState(
-    editingSubscription ? format(new Date(editingSubscription.nextRenewal), 'yyyy-MM-dd') : ''
-  );
-  const [paymentMethod, setPaymentMethod] = useState(editingSubscription?.paymentMethod || '');
-  const [notes, setNotes] = useState(editingSubscription?.notes || '');
+  const [name, setName] = useState('');
+  const [category, setCategory] = useState<Category>('saas');
+  const [cost, setCost] = useState('');
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
+  const [nextRenewal, setNextRenewal] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [notes, setNotes] = useState('');
+
+  // Update form when editingSubscription changes
+  useEffect(() => {
+    if (editingSubscription) {
+      setName(editingSubscription.name || '');
+      setCategory(editingSubscription.category || 'saas');
+      setCost(editingSubscription.cost?.toString() || '');
+      setBillingCycle(editingSubscription.billingCycle || 'monthly');
+      setNextRenewal(editingSubscription.nextRenewal ? format(new Date(editingSubscription.nextRenewal), 'yyyy-MM-dd') : '');
+      setPaymentMethod(editingSubscription.paymentMethod || '');
+      setNotes(editingSubscription.notes || '');
+    }
+  }, [editingSubscription]);
 
   const resetForm = () => {
     setName('');
